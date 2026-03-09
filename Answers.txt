@@ -1,0 +1,24 @@
+Malaria Questions
+
+I didn’t manage to answer all the questions, so I’ll only include the questions that I could. 
+
+1. Do you think that in a phylogenetic tree the parasites that use similar hosts will group together?
+Possibly but not necessarily. Parasites that use similar hosts might share closer ancestors, but if host switching happened later in the evolutionary process, it can result in parasites on different hosts grouped together as well. 
+
+2. You will probably still have some scaffolds that derive from the bird. These should be short. Why?
+Because GC content is not uniform across bird genomes, there could still be bird contigs that fall below 30% GC and thus pass through. 
+
+3. Insert the missing data in the above table. Use bash, not the internet!
+I didn’t really understand the question because I didn’t know which table it was talking about. 
+
+5. What may cause the biased GC-contents in some of the species? 
+It could represent selection preferences, but can also be just due to different genome structures (repeats, transposable elements, noncoding vs CDS, etc.) amplified by sequencing bias. 
+
+6. What does the curly braces notation stand for?
+A set of names of the input protein files. 
+
+11. Does all protein trees reflect the “true” species tree?
+Not all of them. I noticed some different trees. Protein trees are not always the same as species trees because of events like gene duplication/loss, horizontal gene transfer, different evolutionary rates and so on. 
+
+12. What is the phylogenetic position of Plasmodium falciparum?
+It is within the same clade with all other Plasmodiums, but also closer related to Ht compared to others (see malaria.png). 
