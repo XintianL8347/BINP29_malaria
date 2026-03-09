@@ -62,33 +62,36 @@ nohup gmes_petap.pl --ES --min_contig 3000 --cores 10 --sequence ../Ht_no_birds.
 
 2. Phylogenetic trees
 
-After processing Ht data, we ran gffParse.pl on the gff/gtf files from all species. Some gff/gtf files needed extra formatting to be compatable with the script, such as replacing tabs with spaces. After all the formatting, example commands look like: 
+After processing Ht data, we ran gffParse.pl on the gff/gtf files from all species. Some gff/gtf files needed extra formatting to be compatable with the script, example commands look like: 
 
 ```bash
 cat Plasmodium_berghei.gtf | sed "s/ GC=.*\tGeneMark.hmm/\tGeneMark.hmm/" > Pb.gtf  # depending on the original fomat of gff/gtf files, this step is optional 
 gffParse.pl -i ../Raw_Data/Plasmodium_berghei.genome -g Pb.gtf -f gene -c -p -b Pb    # if want to regenerate outfiles using the same basename, a flag -F was needed
 ```
-We added corresponding group names in the headers in the generated faa files. When running ProteinOrtho for the first time, it complained about unrecognizable symbols, therefore a cleanning step was run on all species' faa files, such as: 
+We replaced tabs with spaces and added corresponding group names in the headers in the generated faa files. When running ProteinOrtho for the first time, it complained about unrecognizable symbols, therefore a cleanning step was run on all species' faa files, such as: 
 
 ```bash
-nohup proteinortho6.pl ../prePhylo/{Ht,Pb,Pc,Pf,Pk,Pv,Py,Tg}.faa &  # didn't work
-sed -i -E '/^>/! s/[^XOUBZACDEFGHIKLMNPQRSTVWYxoubzacdefghiklmnpqrstvwy]//g; /^$/d' ../prePhylo/Tg.faa
+sed "s/\t/ /g" Ht.faa > Ht_s.faa  # do it for all the species just to make sure
+sed "s/>/>Tg/" Tg_s.faa > Tg_s2.faa  # do for all the species, change corresponding names
+nohup proteinortho6.pl ../prePhylo/{Ht,Pb,Pc,Pf,Pk,Pv,Py,Tg}_s2.faa &  # didn't work
+sed -i -E '/^>/! s/[^XOUBZACDEFGHIKLMNPQRSTVWYxoubzacdefghiklmnpqrstvwy]//g; /^$/d' ../prePhylo/Tg_s2.faa
 ```
 Then reran the ProteinOrtho: 
 ```bash
-nohup proteinortho6.pl -force -cpus=100 ./{Ht,Pb,Pc,Pf,Pk,Pv,Py,Tg}.faa &
+nohup proteinortho6.pl -force -cpus=100 ./{Ht,Pb,Pc,Pf,Pk,Pv,Py,Tg}_s2.faa &
 ```
 Next, the output file "myproject.proteinortho.tsv" was examined, and only the orthologs with one gene per species were exracted to a new file: 
 ```bash
-head -n 1 myproject.proteinortho.tsv > filtered.tsv
+head -n 1 myproject.proteinortho.tsv > filtered88.tsv
 grep "^8  8" myproject.proteinortho.tsv >> filtered88.tsv   # yielded 9 ortholog groups
 # the following command can be run instead if one wants to also allow orthologs with one extra gene in one of the species to be used in the following tree building. (more data, more complex processings)
+head -n 1 myproject.proteinortho.tsv > filtered89.tsv
 grep "^8  [89]" myproject.proteinortho.tsv >> filtered89.tsv 
 ```
 Aftering filtering, we ran another proteinortho script "proteinortho_grab_protein.pl" to get the protein sequences according to the ortholog IDs: 
 
 ```bash
-proteinortho_grab_protein.pl -tofiles filtered88.tsv ../{Ht,Pb,Pc,Pf,Pk,Pv,Py,Tg}.faa
+proteinortho_grab_proteins.pl -tofiles filtered_88.tsv ../*_s2.faa
 ```
 A script were written to loop over all the ortholog groups and build one alignment for each file. After alignment files where generated, we replaced the header again with only group names. For example: 
 
@@ -104,7 +107,7 @@ bash ~/Malaria/Scripts/raxml.sh
 Finally, we concatenated all the single-ortholog trees into one file called "intree", and merged the trees using consense from the phylip package: 
 
 ```bash
-cat RAxML_result.*.tre > intree
+cat RAxML_result.OrthoGroup* > intree
 consense
 ```
 The output tree was then visualized at: at: http://itol.embl.de/
@@ -113,3 +116,4 @@ A BUSCO analysis was also run for each sample, but no further steps (i.e., writi
 ```bash
 busco -i ../prePhylo/Pb.faa -o Pb -m prot -l apicomplexa 
 ```
+
