@@ -14,9 +14,8 @@ conda install -c bioconda clustalo raxml
 ```
 
 ## Usage
-1. Processing of Ht data
-
-1.1 Clean genome sequence
+### 1. Processing of Ht data
+#### 1.1 Clean genome sequence
 
 All the analysis were carried out on the Server. Firstly, a filtration using a dowloaded python script was performed on the raw Ht genome file, with a maximum GC content of 30% and minimum scaffold length of 3000: 
 
@@ -25,7 +24,7 @@ python Scripts/removeScaffold.py Raw_Data/Haemoproteus_tartakovskyi.raw.genome 3
 ```
 30% GC content was chosen as it falls in between the GC range of parasite (19-42%) while is distinct from bird GC (42%). A few other thresholds were tested (37%, 40%, 41%, etc.), and cutting at 41% and 30% didn't make dramatic differences in the number of scaffolds kept. This suggests that 30% GC cutoff returned a cleaner parasite set while keeping a sufficient number of representative sequences. However, there might still be bird genome remained in the file. 
 
-1.2 Gene prediction
+#### 1.2 Gene prediction
 
 Next, we conducted a gene prediction using: 
 
@@ -60,7 +59,7 @@ Following all that, a second prediction was run on the no-bird Ht fasta file:
 nohup gmes_petap.pl --ES --min_contig 3000 --cores 10 --sequence ../Ht_no_birds.fna &
 ```
 
-2. Phylogenetic trees
+### 2. Phylogenetic trees
 
 After processing Ht data, we ran gffParse.pl on the gff/gtf files from all species. Some gff/gtf files needed extra formatting to be compatable with the script, example commands look like: 
 
@@ -68,7 +67,7 @@ After processing Ht data, we ran gffParse.pl on the gff/gtf files from all speci
 cat Plasmodium_berghei.gtf | sed "s/ GC=.*\tGeneMark.hmm/\tGeneMark.hmm/" > Pb.gtf  # depending on the original fomat of gff/gtf files, this step is optional 
 gffParse.pl -i ../Raw_Data/Plasmodium_berghei.genome -g Pb.gtf -f gene -c -p -b Pb    # if want to regenerate outfiles using the same basename, a flag -F was needed
 ```
-We replaced tabs with spaces and added corresponding group names in the headers in the generated faa files. When running ProteinOrtho for the first time, it complained about unrecognizable symbols, therefore a cleanning step was run on all species' faa files, such as: 
+We replaced tabs with spaces and added corresponding group names in the headers in the generated faa files. When running ProteinOrtho (v6.3.6) for the first time, it complained about unrecognizable symbols, therefore a cleanning step was run on all species' faa files, such as: 
 
 ```bash
 sed "s/\t/ /g" Ht.faa > Ht_s.faa  # do it for all the species just to make sure
@@ -93,18 +92,18 @@ Aftering filtering, we ran another proteinortho script "proteinortho_grab_protei
 ```bash
 proteinortho_grab_proteins.pl -tofiles filtered_88.tsv ../*_s2.faa
 ```
-A script were written to loop over all the ortholog groups and build one alignment for each file. After alignment files where generated, we replaced the header again with only group names. For example: 
+A script were written to loop over all the ortholog groups and build one alignment for each file using clustalo (v1.2.4). After alignment files where generated, we replaced the header again with only group names. For example: 
 
 ```bash
 bash ~/Malaria/Scripts/clustalo.sh  # run clustalo on all the ortho groups
 sed -E 's/[0-9]+_g//' filtered88.tsv.OrthoGroup0.fasta_aligned.faa > OrthoGroup0_aligned_cleaned.faa    # replace headers (there are of course smarter ways of doing it or possibilities of doing it in between other steps, but here I just did it in the hard way as I was only working with 9 ortho files)
 ```
-Similarly, we wrote another script to loop over all the aligned fasta and build one tree per alignmnet: 
+Similarly, we wrote another script to loop over all the aligned fasta and build one tree per alignmnet using RAxML (v8.2.13): 
 
 ```bash
 bash ~/Malaria/Scripts/raxml.sh
 ```
-Finally, we concatenated all the single-ortholog trees into one file called "intree", and merged the trees using consense from the phylip package: 
+Finally, we concatenated all the single-ortholog trees into one file called "intree", and merged the trees using consense from the phylip package (v3.697): 
 
 ```bash
 cat RAxML_result.OrthoGroup* > intree
@@ -112,8 +111,7 @@ consense
 ```
 The output tree was then visualized at: at: http://itol.embl.de/
 
-A BUSCO analysis was also run for each sample, but no further steps (i.e., writing a script to compare busco ids) were carried out due to time limit. 
+A BUSCO (v6.0.0) analysis was also run for each sample, but no further steps (i.e., writing a script to compare busco ids) were carried out due to time limit. 
 ```bash
 busco -i ../prePhylo/Pb.faa -o Pb -m prot -l apicomplexa 
 ```
-
